@@ -497,6 +497,9 @@
         gradeSection.classList.remove('show');
         resetUI();
 
+        // 每次測試時更新連線來源資訊
+        detectUserEnv();
+
         try {
             const response = await fetch(LOCATE_API_URL, { signal: AbortSignal.timeout(10000) });
             if (!response.ok) {
