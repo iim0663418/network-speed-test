@@ -2,6 +2,10 @@
 
 基於 NDT7 協定的網路連線品質測試工具
 
+## 線上使用
+
+部署到 GitHub Pages 後即可使用。詳見下方部署說明。
+
 ## 功能特色
 
 - 真實 TCP 指標：MinRTT、重傳率、抖動、緩衝延遲
@@ -48,12 +52,19 @@ A+ (90+) | A (80+) | B+ (70+) | B (60+) | C (50+) | D (<50)
 ## 本地開發
 
 ```bash
-# 克隆專案
-git clone https://github.com/yourusername/network-speed-test.git
+# 克隆專案（替換成你的 GitHub 使用者名稱）
+git clone https://github.com/YOUR_USERNAME/network-speed-test.git
 
 # 開啟檔案
 open index.html
 ```
+
+## 部署到 GitHub Pages
+
+詳細步驟請參考 DEPLOY.md 文件。
+
+部署完成後，你的網站將位於：
+https://YOUR_USERNAME.github.io/network-speed-test/
 
 ## 特別感謝
 
