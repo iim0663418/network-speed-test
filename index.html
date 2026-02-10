@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="基於 NDT7 協定的網路連線品質測試工具，提供下載上傳速度、延遲、抖動等指標分析">
+    <title>網路診斷工具 - NDT7</title>
+    <style>
+        :root {
+            --primary: #0066cc;
+            --bg: #f5f5f7;
+            --card: #ffffff;
+            --border: #d2d2d7;
+            --text-main: #1d1d1f;
+            --text-sec: #86868b;
+            --accent: #0071e3;
+            --danger: #ff3b30;
+            --success: #34c759;
+            --warning: #ff9500;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, "SF Pro Display", "PingFang TC", sans-serif; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 680px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: -0.022em;
+            margin-bottom: 8px;
+        }
+
+        .header p { font-size: 14px; color: var(--text-sec); }
+
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .user-info-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f2f2f2;
+        }
+
+        .info-item { display: flex; flex-direction: column; }
+        .info-label { font-size: 10px; color: var(--text-sec); text-transform: uppercase; margin-bottom: 2px; }
+        .info-val { font-size: 13px; font-weight: 500; }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .speed-num {
+            font-size: 56px;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            line-height: 1;
+            color: var(--text-main);
+        }
+
+        .speed-unit {
+            font-size: 12px;
+            color: var(--text-sec);
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        .metric-label { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-main); }
+
+        .network-grade {
+            text-align: center;
+            margin: 20px 0;
+            padding: 12px;
+            border-radius: 8px;
+            background: #fbfbfd;
+            border: 1px solid #eee;
+            display: none;
+        }
+        .network-grade.show { display: block; }
+        .grade-val { font-size: 24px; font-weight: 800; color: var(--primary); }
+        .grade-label { font-size: 11px; color: var(--text-sec); margin-top: 4px; }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 20px;
+            background: #fbfbfd;
+            border-radius: 8px;
+            margin-bottom: 32px;
+        }
+
+        .tech-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 10px 0; }
+        .tech-item:last-child { border-bottom: none; }
+        .tech-label { font-size: 11px; color: var(--text-sec); font-weight: 500; }
+        .tech-val { font-size: 13px; font-weight: 700; color: var(--text-main); }
+
+        .btn-primary {
+            width: 100%;
+            padding: 18px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            background: var(--text-main);
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover { 
+            opacity: 0.9; 
+            transform: translateY(-1px);
+        }
+        
+        .btn-primary:focus {
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
+        }
+        
+        .btn-primary:disabled { 
+            background: var(--border); 
+            cursor: not-allowed; 
+            opacity: 0.6;
+        }
+
+        .progress-bar { width: 100%; height: 2px; background: #eee; margin: 20px 0; display: none; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.2s; }
+
+        .narrative-box {
+            display: none;
+            margin-top: 24px;
+            padding: 20px;
+            background: #f0f4f8;
+            border-radius: 10px;
+            border-left: 4px solid var(--accent);
+        }
+        .narrative-box.show { display: block; }
+        .narrative-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+        .narrative-text { font-size: 14px; color: #424245; line-height: 1.6; }
+
+        .node-info { display: flex; justify-content: space-between; margin-top: 24px; padding-top: 20px; border-top: 1px solid #f2f2f2; }
+        .node-stat-label { font-size: 10px; color: var(--text-sec); text-transform: uppercase; }
+        .node-stat-val { font-size: 12px; font-weight: 600; }
+
+        .acknowledgments {
+            margin-top: 20px;
+            font-size: 13px;
+        }
+        .ack-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+        .ack-text {
+            font-size: 13px;
+            color: var(--text-sec);
+            margin-bottom: 20px;
+        }
+        
+        /* 確保文字與背景對比度符合 WCAG AA (4.5:1) */
+        @media (prefers-contrast: more) {
+            :root {
+                --text-sec: #666666;
+            }
+        }
+        .ack-item {
+            padding: 16px;
+            background: #fbfbfd;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 3px solid var(--accent);
+        }
+        .ack-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+        .ack-org {
+            font-size: 12px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .ack-desc {
+            font-size: 12px;
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+        .ack-license {
+            font-size: 11px;
+            color: var(--text-sec);
+        }
+        .ack-license a {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+        .ack-license a:hover {
+            text-decoration: none;
+            background-color: rgba(0, 113, 227, 0.1);
+        }
+        .ack-license a:focus {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+        .ack-footer {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+            font-size: 11px;
+            color: var(--text-sec);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>網路診斷工具</h1>
+        <p>基於 NDT7 協定的連線品質測試</p>
+    </div>
+
+    <div class="card">
+        <div class="user-info-grid">
+            <div class="info-item">
+                <span class="info-label" id="ip-label">連線來源</span>
+                <span class="info-val" id="clientIp" aria-labelledby="ip-label">偵測中...</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label" id="device-label">裝置環境</span>
+                <span class="info-val" id="clientAgent" aria-labelledby="device-label">分析中...</span>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="metric-main">
+                <div class="metric-label" id="download-label">下載頻寬</div>
+                <div class="speed-num" id="downloadSpeed" aria-labelledby="download-label" aria-live="polite">0.0</div>
+                <div class="speed-unit">Mbps</div>
+            </div>
+            <div class="metric-main">
+                <div class="metric-label" id="upload-label">上傳頻寬</div>
+                <div class="speed-num" id="uploadSpeed" aria-labelledby="upload-label" aria-live="polite">0.0</div>
+                <div class="speed-unit">Mbps</div>
+            </div>
+        </div>
+
+        <div class="network-grade" id="gradeSection" role="status" aria-live="polite">
+            <div class="grade-label">連線品質評級</div>
+            <div class="grade-val" id="gradeVal">--</div>
+            <div class="grade-label" id="gradeDesc">等待診斷結果</div>
+        </div>
+
+        <div class="tech-grid">
+            <div class="tech-item">
+                <span class="tech-label">物理延遲底線 (Min RTT)</span>
+                <span class="tech-val" id="minRtt">-- ms</span>
+            </div>
+            <div class="tech-item">
+                <span class="tech-label">數據重傳損耗 (Retrans)</span>
+                <span class="tech-val" id="retrans">-- %</span>
+            </div>
+            <div class="tech-item">
+                <span class="tech-label">連線穩定度 (Jitter)</span>
+                <span class="tech-val" id="jitter">-- ms</span>
+            </div>
+            <div class="tech-item">
+                <span class="tech-label">緩衝排隊延遲 (Bloat)</span>
+                <span class="tech-val" id="bufferBloat">-- ms</span>
+            </div>
+        </div>
+
+        <button class="btn-primary" id="startBtn" onclick="runTest()" aria-label="開始網路診斷測試">開始測試</button>
+
+        <div class="progress-bar" id="progressWrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="測試進度">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="narrative-box" id="narrativeBox" role="region" aria-labelledby="narrativeTitle">
+            <div class="narrative-title" id="narrativeTitle">分析摘要</div>
+            <div class="narrative-text" id="narrativeText">正在彙整連線指標...</div>
+        </div>
+
+        <div class="node-info">
+            <div class="node-stat">
+                <div class="node-stat-label">測試節點</div>
+                <div class="node-stat-val" id="serverName">自動定位中</div>
+            </div>
+            <div class="node-stat">
+                <div class="node-stat-label">地理位置</div>
+                <div class="node-stat-val" id="serverLoc">--</div>
+            </div>
+            <div class="node-stat">
+                <div class="node-stat-label">演算法</div>
+                <div class="node-stat-val">TCP BBR / CUBIC</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card acknowledgments">
+        <h2 class="ack-title">特別感謝</h2>
+        <p class="ack-text">此專案主要引用了以下技術專案與 API 服務：</p>
+        
+        <div class="ack-item">
+            <div class="ack-name">NDT7 (Network Diagnostic Tool v7)</div>
+            <div class="ack-org">Measurement Lab (M-Lab)</div>
+            <div class="ack-desc">提供基於 WebSocket 的高效能測速協定與 TCP 指標</div>
+            <div class="ack-license">Apache License 2.0 · <a href="https://github.com/m-lab/ndt7-js" target="_blank">專案連結</a></div>
+        </div>
+
+        <div class="ack-item">
+            <div class="ack-name">M-Lab Locate API (v2)</div>
+            <div class="ack-org">Measurement Lab (M-Lab)</div>
+            <div class="ack-desc">動態節點定位服務與安全連線分發</div>
+            <div class="ack-license">Apache License 2.0 · <a href="https://www.measurementlab.net/develop/locate-v2" target="_blank">服務文件</a></div>
+        </div>
+
+        <div class="ack-item">
+            <div class="ack-name">ipapi.co</div>
+            <div class="ack-org">ipapi.co</div>
+            <div class="ack-desc">IP 地址與地理位置偵測服務</div>
+            <div class="ack-license">Terms of Service · <a href="https://ipapi.co/" target="_blank">官方網站</a></div>
+        </div>
+
+        <div class="ack-item">
+            <div class="ack-name">TCP BBR</div>
+            <div class="ack-org">Google</div>
+            <div class="ack-desc">現代擁塞控制演算法</div>
+            <div class="ack-license">BSD / GPL v2 (Linux Kernel)</div>
+        </div>
+
+        <div class="ack-footer">
+            UI 設計參考 Apple Human Interface Guidelines · 字體使用 SF Pro Display / System Fonts
+        </div>
+    </div>
+</div>
+
+<script>
+    const LOCATE_API_URL = "https://locate.measurementlab.net/v2/nearest/ndt/ndt7";
+
+    window.onload = detectUserEnv;
+
+    async function detectUserEnv() {
+        const ua = navigator.userAgent;
+        let os = "Unknown";
+        if (ua.indexOf("Win") !== -1) os = "Windows";
+        if (ua.indexOf("Mac") !== -1) os = "macOS";
+        if (ua.indexOf("Linux") !== -1) os = "Linux";
+        if (ua.indexOf("Android") !== -1) os = "Android";
+        if (ua.indexOf("like Mac") !== -1) os = "iOS";
+        document.getElementById('clientAgent').textContent = os;
+
+        try {
+            const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) });
+            const data = await res.json();
+            document.getElementById('clientIp').textContent = `${data.ip} (${data.org})`;
+        } catch (e) {
+            document.getElementById('clientIp').textContent = "偵測失敗";
+        }
+    }
+
+    async function runTest() {
+        const btn = document.getElementById('startBtn');
+        const progressWrap = document.getElementById('progressWrap');
+        const progressFill = document.getElementById('progressFill');
+        const narrativeBox = document.getElementById('narrativeBox');
+        const gradeSection = document.getElementById('gradeSection');
+        
+        btn.disabled = true;
+        btn.textContent = "正在定位最佳測速節點...";
+        progressWrap.style.display = 'block';
+        progressWrap.setAttribute('aria-valuenow', '0');
+        narrativeBox.classList.remove('show');
+        gradeSection.classList.remove('show');
+        resetUI();
+
+        try {
+            const response = await fetch(LOCATE_API_URL, { signal: AbortSignal.timeout(10000) });
+            if (!response.ok) {
+                throw new Error(`定位服務回應錯誤: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            if (!data.results || data.results.length === 0) {
+                throw new Error('無法找到可用的測試伺服器');
+            }
+            
+            const target = data.results[0];
+
+            document.getElementById('serverName').textContent = target.machine.split('.')[0].toUpperCase();
+            document.getElementById('serverLoc').textContent = `${target.location.city}, ${target.location.country}`;
+
+            // 正確取得 WebSocket URL（key 格式已確認）
+            const downloadUrl = target.urls["wss:///ndt/v7/download"];
+            const uploadUrl = target.urls["wss:///ndt/v7/upload"];
+            
+            if (!downloadUrl || !uploadUrl) {
+                throw new Error('伺服器 URL 格式錯誤');
+            }
+
+            // 下載
+            btn.textContent = "分析下載頻寬品質...";
+            const dl = await testNDT7(downloadUrl, 'download');
+            progressFill.style.width = "50%";
+
+            // 上傳
+            btn.textContent = "分析上傳頻寬品質...";
+            const ul = await testNDT7(uploadUrl, 'upload');
+            progressFill.style.width = "100%";
+
+            showResults(dl.speed, ul.speed, dl.data, ul.data);
+
+        } catch (err) {
+            console.error('診斷錯誤:', err);
+            const errorMsg = err.name === 'TimeoutError' 
+                ? '連線逾時，請檢查網路狀態後重試' 
+                : `診斷失敗: ${err.message}`;
+            alert(errorMsg);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "開始測試";
+            setTimeout(() => progressWrap.style.display = 'none', 1000);
+        }
+    }
+
+    function resetUI() {
+        document.getElementById('downloadSpeed').textContent = "0.0";
+        document.getElementById('uploadSpeed').textContent = "0.0";
+        document.getElementById('minRtt').textContent = "-- ms";
+        document.getElementById('retrans').textContent = "-- %";
+        document.getElementById('jitter').textContent = "-- ms";
+        document.getElementById('bufferBloat').textContent = "-- ms";
+    }
+
+    function testNDT7(url, type) {
+        return new Promise((resolve, reject) => {
+            let socket;
+            let startTime = performance.now();
+            let totalBytes = 0;
+            let lastThroughput = 0;
+            let lastTCPInfo = null;
+            let timeoutId = null;
+            let uiTimer = null;
+            let isCompleted = false;
+
+            const cleanup = () => {
+                if (uiTimer) clearInterval(uiTimer);
+                if (timeoutId) clearTimeout(timeoutId);
+            };
+
+            const completeTest = (success, error = null) => {
+                if (isCompleted) return;
+                isCompleted = true;
+                cleanup();
+                
+                if (socket && socket.readyState !== WebSocket.CLOSED) {
+                    socket.close();
+                }
+                
+                if (success) {
+                    resolve({ speed: lastThroughput, data: lastTCPInfo });
+                } else {
+                    reject(error || new Error('測試失敗'));
+                }
+            };
+
+            try {
+                socket = new WebSocket(url, 'net.measurementlab.ndt.v7');
+                socket.binaryType = 'arraybuffer';
+            } catch (err) {
+                reject(new Error(`WebSocket 初始化失敗: ${err.message}`));
+                return;
+            }
+
+            uiTimer = setInterval(() => {
+                if (totalBytes > 0) {
+                    const now = performance.now();
+                    const duration = (now - startTime) / 1000;
+                    if (duration > 0) {
+                        const mbps = (totalBytes * 8) / (duration * 1000000);
+                        lastThroughput = mbps;
+                        const element = document.getElementById(type + 'Speed');
+                        if (element) element.textContent = mbps.toFixed(1);
+                    }
+                }
+            }, 200);
+
+            socket.onopen = () => {
+                if (type === 'upload') {
+                    const buffer = new Uint8Array(16384);
+                    const sendLoop = () => {
+                        if (isCompleted) return;
+                        
+                        if (socket.readyState === WebSocket.OPEN) {
+                            try {
+                                socket.send(buffer);
+                                totalBytes += buffer.byteLength;
+                                
+                                if (performance.now() - startTime < 5000) {
+                                    setTimeout(sendLoop, 1);
+                                } else {
+                                    socket.close();
+                                }
+                            } catch (err) {
+                                completeTest(false, new Error(`上傳失敗: ${err.message}`));
+                            }
+                        }
+                    };
+                    sendLoop();
+                }
+            };
+
+            socket.onmessage = (event) => {
+                if (typeof event.data === 'string') {
+                    try {
+                        const m = JSON.parse(event.data);
+                        const info = m.TCPInfo || (m.Measurement && m.Measurement.TCPInfo);
+                        if (info) {
+                            lastTCPInfo = info;
+                            updateTechMetrics(info);
+                        }
+                    } catch (e) {
+                        console.warn('解析測量資料失敗:', e);
+                    }
+                } else {
+                    totalBytes += event.data.byteLength;
+                }
+            };
+
+            socket.onclose = (event) => {
+                if (!isCompleted) {
+                    if (event.wasClean) {
+                        completeTest(true);
+                    } else {
+                        completeTest(false, new Error(`連線異常關閉 (code: ${event.code})`));
+                    }
+                }
+            };
+
+            socket.onerror = (err) => {
+                console.error('WebSocket 錯誤:', err);
+                completeTest(false, new Error('網路連線錯誤'));
+            };
+
+            // 15 秒超時保護
+            timeoutId = setTimeout(() => {
+                if (!isCompleted) {
+                    console.warn('測試超時，強制結束');
+                    completeTest(true); // 超時視為完成，使用已收集的資料
+                }
+            }, 15000);
+        });
+    }
+
+    /**
+     * 從 TCPInfo 物件中提取重傳率 (Retransmission Rate)
+     * 封裝邏輯以應對不同的伺服器屬性命名 (snake_case vs camelCase)
+     */
+    function getRetransRate(info) {
+        if (!info) return 0;
+        const retrans = info.BytesRetrans || info.bytes_retrans || 0;
+        const sent = info.BytesSent || info.bytes_sent || 0;
+        return sent > 0 ? (retrans / sent) : 0;
+    }
+
+    function updateTechMetrics(info) {
+        const minRtt = info.MinRTT || info.min_rtt || 0;
+        const rtt = info.RTT || info.rtt || 0;
+        const rttVar = info.RTTVar || info.rttvar || 0;
+
+        if (minRtt > 0) document.getElementById('minRtt').textContent = (minRtt / 1000).toFixed(1) + ' ms';
+        if (rttVar > 0) document.getElementById('jitter').textContent = (rttVar / 1000).toFixed(1) + ' ms';
+        
+        if (rtt > 0 && minRtt > 0) {
+            const bloat = (rtt - minRtt) / 1000;
+            document.getElementById('bufferBloat').textContent = Math.max(0, bloat).toFixed(1) + ' ms';
+        }
+
+        const rate = getRetransRate(info);
+        document.getElementById('retrans').textContent = (rate * 100).toFixed(3) + ' %';
+    }
+
+    function showResults(dl, ul, dlData, ulData) {
+        const narrativeBox = document.getElementById('narrativeBox');
+        const title = document.getElementById('narrativeTitle');
+        const text = document.getElementById('narrativeText');
+        const gradeSection = document.getElementById('gradeSection');
+        
+        // 取得下載與上傳的重傳率與延遲資訊
+        const dlRetransRate = getRetransRate(dlData);
+        const ulRetransRate = getRetransRate(ulData);
+        const dlRtt = dlData ? ((dlData.MinRTT || dlData.min_rtt || 100000) / 1000) : 100;
+        const ulRtt = ulData ? ((ulData.MinRTT || ulData.min_rtt || 100000) / 1000) : 100;
+        
+        // 更新 UI 顯示（使用下載測試的數據，因為更能反映使用者體驗）
+        if (dlData) {
+            const minRtt = dlData.MinRTT || dlData.min_rtt || 0;
+            const rtt = dlData.RTT || dlData.rtt || 0;
+            const rttVar = dlData.RTTVar || dlData.rttvar || 0;
+            
+            if (minRtt > 0) document.getElementById('minRtt').textContent = (minRtt / 1000).toFixed(1) + ' ms';
+            if (rttVar > 0) document.getElementById('jitter').textContent = (rttVar / 1000).toFixed(1) + ' ms';
+            if (rtt > 0 && minRtt > 0) {
+                const bloat = (rtt - minRtt) / 1000;
+                document.getElementById('bufferBloat').textContent = Math.max(0, bloat).toFixed(1) + ' ms';
+            }
+            document.getElementById('retrans').textContent = (dlRetransRate * 100).toFixed(3) + ' %';
+        }
+        
+        // 使用兩輪測試中較差的指標進行評估（更保守的評估）
+        const worstRetransRate = Math.max(dlRetransRate, ulRetransRate);
+        const avgRtt = (dlRtt + ulRtt) / 2;
+
+        // 計算綜合評分（參考 Ookla Speed Score 4.0）
+        let score = 0;
+        
+        // 下載速度 (40%)
+        if (dl >= 50) score += 40; 
+        else if (dl >= 25) score += 30; 
+        else if (dl >= 10) score += 20;
+        else if (dl >= 5) score += 10;
+        
+        // 上傳速度 (20%)
+        if (ul >= 20) score += 20;
+        else if (ul >= 10) score += 15;
+        else if (ul >= 5) score += 10;
+        else if (ul >= 2) score += 5;
+        
+        // 延遲 (20%)
+        if (avgRtt < 30) score += 20; 
+        else if (avgRtt < 50) score += 15; 
+        else if (avgRtt < 100) score += 10;
+        else if (avgRtt < 150) score += 5;
+        
+        // 數據損耗 (20%)
+        if (worstRetransRate < 0.0001) score += 20;
+        else if (worstRetransRate < 0.001) score += 15;
+        else if (worstRetransRate < 0.005) score += 10;
+        else if (worstRetransRate < 0.01) score += 5;
+
+        let grade = "D";
+        if (score >= 90) grade = "A+"; 
+        else if (score >= 80) grade = "A"; 
+        else if (score >= 70) grade = "B+";
+        else if (score >= 60) grade = "B";
+        else if (score >= 50) grade = "C";
+
+        gradeSection.classList.add('show');
+        document.getElementById('gradeVal').textContent = grade;
+        document.getElementById('gradeDesc').textContent = `連線品質綜合診斷 (${score}/100)`;
+
+        narrativeBox.classList.add('show');
+        title.textContent = "連線品質分析報告";
+
+        // 診斷結論判定邏輯（基於兩輪測試的綜合分析）
+        if (worstRetransRate > 0.01) {
+            text.textContent = `偵測到明顯的數據重傳（下載: ${(dlRetransRate * 100).toFixed(3)}%, 上傳: ${(ulRetransRate * 100).toFixed(3)}%）。這反映了實體線路（如 Wi-Fi 干擾或網線老化）存在品質瑕疵，即使頻寬足夠，觀看視訊或遊戲仍可能感到卡頓。`;
+        } else if (avgRtt > 150) {
+            text.textContent = `物理延遲底線偏高（下載: ${dlRtt.toFixed(1)}ms, 上傳: ${ulRtt.toFixed(1)}ms）。這通常代表您正連往地理距離極遠的伺服器，適合網頁瀏覽，但對於即時互動類型的應用較為不利。`;
+        } else if (dl < 5 || ul < 1) {
+            text.textContent = `頻寬不足（下載: ${dl.toFixed(1)} Mbps, 上傳: ${ul.toFixed(1)} Mbps）。建議檢查是否有其他裝置佔用頻寬，或考慮升級網路方案。`;
+        } else {
+            const retransDiff = Math.abs(dlRetransRate - ulRetransRate);
+            const rttDiff = Math.abs(dlRtt - ulRtt);
+            const consistency = retransDiff < 0.005 && rttDiff < 30;
+            
+            if (consistency) {
+                text.textContent = "您的網路連線狀況非常健康。延遲穩定且數據損耗極低，上下行品質一致，能完美勝任各類高品質網路服務。";
+            } else {
+                text.textContent = `您的網路連線整體良好，但上下行品質略有差異（重傳率差異: ${(retransDiff * 100).toFixed(3)}%, 延遲差異: ${rttDiff.toFixed(1)}ms）。這在一般使用中不會造成明顯影響。`;
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
