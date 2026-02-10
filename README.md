@@ -4,23 +4,23 @@
 
 ## 功能特色
 
-- 🚀 **真實 TCP 指標**：MinRTT、重傳率、抖動、緩衝延遲
-- 📊 **雙向測試**：下載與上傳速度完整分析
-- 🎯 **智能評分**：綜合評估網路品質（A+ 到 D）
-- ♿ **無障礙設計**：符合 WCAG 2.2 Level AA 標準
-- 🌐 **全球節點**：自動連接最近的 M-Lab 測試伺服器
+- 真實 TCP 指標：MinRTT、重傳率、抖動、緩衝延遲
+- 雙向測試：下載與上傳速度完整分析
+- 智能評分：綜合評估網路品質（A+ 到 D）
+- 無障礙設計：符合 WCAG 2.2 Level AA 標準
+- 全球節點：自動連接最近的 M-Lab 測試伺服器
 
 ## 線上使用
 
-訪問：[https://yourusername.github.io/network-speed-test/](https://yourusername.github.io/network-speed-test/)
+訪問：https://yourusername.github.io/network-speed-test/
 
 ## 技術架構
 
 ### 核心技術
 
-- **NDT7 協定**：M-Lab 的 Network Diagnostic Tool v7
-- **WebSocket**：即時雙向通訊
-- **TCP BBR**：現代擁塞控制演算法
+- NDT7 協定：M-Lab 的 Network Diagnostic Tool v7
+- WebSocket：即時雙向通訊
+- TCP BBR：現代擁塞控制演算法
 
 ### 測試指標
 
@@ -59,10 +59,10 @@ open index.html
 
 此專案使用以下開源技術：
 
-- **NDT7** - Measurement Lab (M-Lab) - Apache License 2.0
-- **M-Lab Locate API** - Measurement Lab - Apache License 2.0
-- **ipapi.co** - IP 地理位置服務
-- **TCP BBR** - Google - BSD/GPL v2
+- NDT7 - Measurement Lab (M-Lab) - Apache License 2.0
+- M-Lab Locate API - Measurement Lab - Apache License 2.0
+- ipapi.co - IP 地理位置服務
+- TCP BBR - Google - BSD/GPL v2
 
 ## 授權
 
