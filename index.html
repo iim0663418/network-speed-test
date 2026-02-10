@@ -264,6 +264,40 @@
             color: var(--text-sec);
             text-align: center;
         }
+
+        .scoring-info {
+            margin: 20px 0;
+            padding: 16px;
+            background: #f9f9fb;
+            border-radius: 8px;
+            border: 1px solid #e5e5e7;
+        }
+        .scoring-info summary {
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            user-select: none;
+        }
+        .scoring-info summary:hover {
+            color: var(--accent);
+        }
+        .scoring-content {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+        }
+        .scoring-content ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+        .scoring-content li {
+            margin: 4px 0;
+        }
+        .scoring-content p {
+            margin: 8px 0;
+        }
     </style>
 </head>
 <body>
@@ -304,6 +338,20 @@
             <div class="grade-val" id="gradeVal">--</div>
             <div class="grade-label" id="gradeDesc">等待診斷結果</div>
         </div>
+
+        <details class="scoring-info">
+            <summary>評分標準說明</summary>
+            <div class="scoring-content">
+                <p>總分 100 分，由以下指標組成：</p>
+                <ul>
+                    <li>下載速度 (40%)</li>
+                    <li>上傳速度 (20%)</li>
+                    <li>延遲 (20%)</li>
+                    <li>數據損耗 (20%)</li>
+                </ul>
+                <p>評級：A+ (90+) | A (80+) | B+ (70+) | B (60+) | C (50+) | D (&lt;50)</p>
+            </div>
+        </details>
 
         <div class="tech-grid">
             <div class="tech-item">
