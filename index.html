@@ -3,8 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="基於 NDT7 協定的網路連線品質測試工具，提供下載上傳速度、延遲、抖動等指標分析">
-    <title>網路診斷工具 - NDT7</title>
+    <meta name="description" content="免費開源的網路速度測試工具，基於 M-Lab NDT7 協定，提供下載上傳速度、延遲、抖動、重傳率等專業 TCP 指標分析，準確診斷網路品質問題。">
+    <meta name="keywords" content="網路測速,測速工具,網路診斷,NDT7,網路速度測試,下載速度,上傳速度,延遲測試,ping測試,網路品質,M-Lab">
+    <meta name="author" content="Network Speed Test">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="網路診斷工具 - 基於 NDT7 的專業測速">
+    <meta property="og:description" content="免費開源的網路速度測試工具，提供專業 TCP 指標分析，準確診斷網路品質問題。">
+    <meta property="og:url" content="https://YOUR_USERNAME.github.io/network-speed-test/">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="網路診斷工具 - 基於 NDT7 的專業測速">
+    <meta name="twitter:description" content="免費開源的網路速度測試工具，提供專業 TCP 指標分析。">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://YOUR_USERNAME.github.io/network-speed-test/">
+    
+    <title>網路診斷工具 - NDT7 專業測速 | 免費開源網路速度測試</title>
     <style>
         :root {
             --primary: #0066cc;
@@ -251,12 +269,12 @@
 <body>
 
 <div class="container">
-    <div class="header">
+    <header class="header">
         <h1>網路診斷工具</h1>
         <p>基於 NDT7 協定的連線品質測試</p>
-    </div>
+    </header>
 
-    <div class="card">
+    <main class="card">
         <div class="user-info-grid">
             <div class="info-item">
                 <span class="info-label" id="ip-label">連線來源</span>
@@ -331,9 +349,9 @@
                 <div class="node-stat-val">TCP BBR / CUBIC</div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <div class="card acknowledgments">
+    <footer class="card acknowledgments">
         <h2 class="ack-title">特別感謝</h2>
         <p class="ack-text">此專案主要引用了以下技術專案與 API 服務：</p>
         
@@ -368,8 +386,29 @@
         <div class="ack-footer">
             UI 設計參考 Apple Human Interface Guidelines · 字體使用 SF Pro Display / System Fonts
         </div>
-    </div>
+    </footer>
 </div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "網路診斷工具",
+  "description": "基於 NDT7 協定的免費開源網路速度測試工具",
+  "url": "https://YOUR_USERNAME.github.io/network-speed-test/",
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "Any",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Organization",
+    "name": "Network Speed Test"
+  }
+}
+</script>
 
 <script>
     const LOCATE_API_URL = "https://locate.measurementlab.net/v2/nearest/ndt/ndt7";
