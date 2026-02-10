@@ -72,7 +72,7 @@ https://YOUR_USERNAME.github.io/network-speed-test/
 
 - NDT7 - Measurement Lab (M-Lab) - Apache License 2.0
 - M-Lab Locate API - Measurement Lab - Apache License 2.0
-- ipapi.co - IP 地理位置服務
+- ipapi.co & FreeIPAPI - IP 地理位置服務（雙重備援）
 - TCP BBR - Google - BSD/GPL v2
 
 ## 授權

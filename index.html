@@ -418,10 +418,10 @@
         </div>
 
         <div class="ack-item">
-            <div class="ack-name">ipapi.co</div>
-            <div class="ack-org">ipapi.co</div>
-            <div class="ack-desc">IP 地址與地理位置偵測服務</div>
-            <div class="ack-license">Terms of Service · <a href="https://ipapi.co/" target="_blank">官方網站</a></div>
+            <div class="ack-name">ipapi.co & FreeIPAPI</div>
+            <div class="ack-org">ipapi.co / freeipapi.com</div>
+            <div class="ack-desc">IP 地址與地理位置偵測服務（雙重備援）</div>
+            <div class="ack-license"><a href="https://ipapi.co/" target="_blank">ipapi.co</a> · <a href="https://freeipapi.com/" target="_blank">FreeIPAPI</a></div>
         </div>
 
         <div class="ack-item">
@@ -474,11 +474,24 @@
         document.getElementById('clientAgent').textContent = os;
 
         try {
-            const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) });
+            const res = await fetch('https://ipapi.co/json/', { 
+                signal: AbortSignal.timeout(8000),
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
-            document.getElementById('clientIp').textContent = `${data.ip} (${data.org})`;
+            const org = data.org || data.asn || '未知 ISP';
+            document.getElementById('clientIp').textContent = `${data.ip} (${org})`;
         } catch (e) {
-            document.getElementById('clientIp').textContent = "偵測失敗";
+            console.warn('主要 IP 偵測失敗，使用備援:', e);
+            try {
+                const res = await fetch('https://freeipapi.com/api/json/', { signal: AbortSignal.timeout(5000) });
+                const data = await res.json();
+                const org = data.asnOrganization || data.asn || '';
+                document.getElementById('clientIp').textContent = org ? `${data.ipAddress} (${org})` : data.ipAddress;
+            } catch (e2) {
+                document.getElementById('clientIp').textContent = "無法偵測";
+            }
         }
     }
 
