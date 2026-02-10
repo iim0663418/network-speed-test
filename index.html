@@ -506,7 +506,10 @@
 <script>
     const LOCATE_API_URL = "https://locate.measurementlab.net/v2/nearest/ndt/ndt7";
 
-    window.onload = detectUserEnv;
+    window.onload = () => {
+        console.log('頁面載入完成，開始偵測環境');
+        detectUserEnv();
+    };
 
     async function detectUserEnv() {
         const ua = navigator.userAgent;
@@ -516,7 +519,12 @@
         if (ua.indexOf("Linux") !== -1) os = "Linux";
         if (ua.indexOf("Android") !== -1) os = "Android";
         if (ua.indexOf("like Mac") !== -1) os = "iOS";
-        document.getElementById('clientAgent').textContent = os;
+        
+        const agentEl = document.getElementById('clientAgent');
+        if (agentEl) {
+            agentEl.textContent = os;
+            console.log('裝置環境:', os);
+        }
 
         try {
             const res = await fetch('https://ipapi.co/json/', { 
@@ -526,16 +534,26 @@
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             const org = data.org || data.asn || '未知 ISP';
-            document.getElementById('clientIp').textContent = `${data.ip} (${org})`;
+            const ipEl = document.getElementById('clientIp');
+            if (ipEl) {
+                ipEl.textContent = `${data.ip} (${org})`;
+                console.log('IP 偵測成功:', data.ip);
+            }
         } catch (e) {
             console.warn('主要 IP 偵測失敗，使用備援:', e);
             try {
                 const res = await fetch('https://freeipapi.com/api/json/', { signal: AbortSignal.timeout(5000) });
                 const data = await res.json();
                 const org = data.asnOrganization || data.asn || '';
-                document.getElementById('clientIp').textContent = org ? `${data.ipAddress} (${org})` : data.ipAddress;
+                const ipEl = document.getElementById('clientIp');
+                if (ipEl) {
+                    ipEl.textContent = org ? `${data.ipAddress} (${org})` : data.ipAddress;
+                    console.log('備援 IP 偵測成功:', data.ipAddress);
+                }
             } catch (e2) {
-                document.getElementById('clientIp').textContent = "無法偵測";
+                console.error('所有 IP 偵測失敗:', e2);
+                const ipEl = document.getElementById('clientIp');
+                if (ipEl) ipEl.textContent = "無法偵測";
             }
         }
     }
